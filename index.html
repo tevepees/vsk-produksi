@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VSK Produksi">
+<link rel="manifest" href="manifest.json">
+<title>VSK — Sistem Rekap Produksi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0b1209;
+  --bg2:      #111f0e;
+  --bg3:      #172614;
+  --surface:  #1e3019;
+  --surface2: #243d1e;
+  --green:    #4ade80;
+  --green2:   #22c55e;
+  --green3:   #16a34a;
+  --amber:    #fbbf24;
+  --red:      #f87171;
+  --muted:    #6b9e6b;
+  --text:     #e2f0e2;
+  --text2:    #a3c4a3;
+  --text3:    #6b9e6b;
+  --border:   #2a4a25;
+  --mono:     'Space Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+  --r:        10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; flex-direction: column; }
+.brand-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green); letter-spacing: 0.08em; }
+.brand-sub  { font-size: 10px; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+.topbar-date { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: right; }
+
+/* ── NAV TABS ── */
+.nav {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  flex: 1; min-width: 80px;
+  padding: 12px 8px;
+  border: none; background: transparent;
+  color: var(--text3); font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.nav-btn.active { color: var(--green); border-bottom-color: var(--green); background: var(--bg3); }
+.nav-btn:hover:not(.active) { color: var(--text2); background: var(--bg3); }
+
+/* ── PAGES ── */
+.page { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── SECTION LABEL ── */
+.sec {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
+  margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.sec::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sec:first-child { margin-top: 0; }
+
+/* ── SHIFT SELECTOR ── */
+.shift-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.shift-card {
+  padding: 12px; border: 1px solid var(--border); border-radius: var(--r);
+  background: var(--bg2); cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.shift-card:hover { border-color: var(--green3); background: var(--bg3); }
+.shift-card.active { border-color: var(--green); background: var(--surface); }
+.shift-card .s-label { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text2); }
+.shift-card.active .s-label { color: var(--green); }
+.shift-card .s-time { font-size: 11px; color: var(--text3); }
+
+/* ── INPUT FIELDS ── */
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.04em; }
+.input-wrap { position: relative; }
+.input-wrap input {
+  width: 100%; padding: 10px 40px 10px 12px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg2); color: var(--text);
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  outline: none; transition: all 0.15s; -webkit-appearance: none;
+}
+.input-wrap input:focus { border-color: var(--green); background: var(--surface); }
+.input-wrap input::placeholder { color: var(--text3); font-weight: 400; }
+.unit {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 10px; color: var(--muted); pointer-events: none;
+}
+textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--bg2); color: var(--text2);
+  font-family: var(--sans); font-size: 13px;
+  resize: none; height: 70px; outline: none; transition: all 0.15s;
+}
+textarea:focus { border-color: var(--green); background: var(--surface); }
+textarea::placeholder { color: var(--text3); }
+
+/* ── SUSUT PREVIEW ── */
+.susut-bar {
+  margin-top: 10px; padding: 10px 14px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 7px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.susut-label { font-size: 12px; color: var(--text3); }
+.susut-val { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--amber); }
+
+/* ── SUBMIT BTN ── */
+.btn-submit {
+  width: 100%; margin-top: 16px; padding: 14px;
+  background: var(--green3); border: none; border-radius: var(--r);
+  color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s;
+}
+.btn-submit:hover { background: var(--green2); }
+.btn-submit:active { transform: scale(0.98); }
+
+/* ── METRIC CARDS ── */
+.metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.metric {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 14px 12px;
+}
+.metric.highlight { background: var(--surface); border-color: var(--green3); }
+.metric-val { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+.metric.highlight .metric-val { color: var(--green); }
+.metric-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.metric-sub { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* ── LOG ENTRIES ── */
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  overflow: hidden;
+}
+.log-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.log-shift { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.log-shift.pagi  { color: var(--amber); }
+.log-shift.sore  { color: var(--green); }
+.log-time { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.log-body { display: grid; grid-template-columns: repeat(4,1fr); padding: 10px 14px; gap: 6px; }
+.log-stat { display: flex; flex-direction: column; gap: 1px; }
+.log-stat-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text); }
+.log-stat-lbl { font-size: 10px; color: var(--text3); }
+.log-note { padding: 0 14px 10px; font-size: 11px; color: var(--text3); font-style: italic; border-top: 1px solid var(--border); padding-top: 8px; }
+.log-del {
+  display: block; width: 100%; padding: 8px;
+  background: transparent; border: none; border-top: 1px solid var(--border);
+  color: var(--red); font-size: 11px; font-family: var(--sans);
+  cursor: pointer; opacity: 0.6; transition: opacity 0.15s;
+}
+.log-del:hover { opacity: 1; }
+
+/* ── HISTORY TABLE ── */
+.hist-table { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
+.hist-table th {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.hist-table td {
+  padding: 9px 10px; border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--text2); white-space: nowrap;
+}
+.hist-table tr:hover td { background: var(--bg2); }
+.badge-susut { color: var(--amber); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--text3); font-size: 13px;
+}
+.empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.5; display: block; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--green3); color: #fff; padding: 10px 20px; border-radius: 8px;
+  font-size: 13px; font-family: var(--sans); font-weight: 500;
+  opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--red); color: #1a0000; }
+
+/* ── DEPLOY GUIDE ── */
+.guide-step {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  margin-bottom: 10px; overflow: hidden;
+}
+.guide-step-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; cursor: pointer;
+}
+.step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--green3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--green);
+  flex-shrink: 0;
+}
+.step-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.step-body { padding: 0 14px 14px; display: none; }
+.step-body.open { display: block; }
+.step-body p { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.6; }
+.step-body p:last-child { margin-bottom: 0; }
+code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--bg3); padding: 2px 6px; border-radius: 4px;
+  color: var(--green); word-break: break-all;
+}
+.code-block {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+  padding: 12px; margin: 8px 0; font-family: var(--mono); font-size: 11px;
+  color: var(--green); line-height: 1.7; overflow-x: auto; white-space: pre;
+}
+.btn-copy {
+  display: block; width: 100%; margin-top: 8px; padding: 9px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text2); font-size: 12px; font-family: var(--sans); font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-copy:hover { border-color: var(--green3); color: var(--green); }
+
+/* ── EXPORT BTN ── */
+.btn-export {
+  display: block; width: 100%; margin-top: 12px; padding: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text2); font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.btn-export:hover { border-color: var(--green3); color: var(--green); }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { margin-top: 8px; background: var(--bg3); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 4px; background: var(--green3); transition: width 0.4s; }
+.progress-bar.warn { background: var(--amber); }
+.progress-bar.over { background: var(--green); }
+
+@media (max-width: 380px) {
+  .input-grid { grid-template-columns: 1fr; }
+  .metric-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-name">VSK PRODUKSI</div>
+    <div class="brand-sub">Varian Sumber Karya</div>
+  </div>
+  <div class="topbar-date" id="top-date"></div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="goto('input')">Input Shift</button>
+  <button class="nav-btn" onclick="goto('rekap')">Rekap Hari Ini</button>
+  <button class="nav-btn" onclick="goto('history')">Riwayat</button>
+  <button class="nav-btn" onclick="goto('deploy')">Deploy Guide</button>
+</nav>
+
+<!-- ══════════════════════════════════════
+     PAGE: INPUT
+══════════════════════════════════════ -->
+<div class="page active" id="page-input">
+
+  <div class="sec">Pilih Shift</div>
+  <div class="shift-grid">
+    <div class="shift-card active" id="sc-pagi" onclick="setShift('pagi')">
+      <span class="s-label">PAGI</span>
+      <span class="s-time">06.00 – 14.00</span>
+    </div>
+    <div class="shift-card" id="sc-sore" onclick="setShift('sore')">
+      <span class="s-label">SORE</span>
+      <span class="s-time">14.00 – 22.00</span>
+    </div>
+  </div>
+
+  <div class="sec">Operator</div>
+  <div class="field" style="margin-bottom:12px">
+    <label>Nama Operator</label>
+    <div class="input-wrap">
+      <input type="text" id="inp-operator" placeholder="Nama lengkap" autocomplete="name">
+    </div>
+  </div>
+
+  <div class="sec">Bahan Baku</div>
+  <div class="input-grid">
+    <div class="field">
+      <label>Jumlah Karung</label>
+      <div class="input-wrap">
+        <input type="number" id="inp-karung" placeholder="0" min="0" inputmode="numeric" oninput="calcSusut()">
+        <span class="unit">krg</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Bahan Basah</label>
+      <div class="input-wrap">
+        <input type="number" id="inp-basah" placeholder="0" min="0" step="0.1" inputmode="decimal" oninput="calcSusut()">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">Hasil Produksi</div>
+  <div class="input-grid">
+    <div class="field">
+      <label>Hasil Kering</label>
+      <div class="input-wrap">
+        <input type="number" id="inp-kering" placeholder="0" min="0" step="0.1" inputmode="decimal" oninput="calcSusut()">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Block Diproduksi</label>
+      <div class="input-wrap">
+        <input type="number" id="inp-block" placeholder="0" min="0" inputmode="numeric">
+        <span class="unit">pcs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="susut-bar">
+    <span class="susut-label">Susut Penjemuran</span>
+    <span class="susut-val" id="susut-preview">—</span>
+  </div>
+
+  <div class="sec" style="margin-top:16px">Catatan</div>
+  <textarea id="inp-notes" placeholder="Kendala mesin, kualitas, atau catatan penting lainnya... (opsional)"></textarea>
+
+  <button class="btn-submit" onclick="submitShift()">Simpan Data Shift</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: REKAP
+══════════════════════════════════════ -->
+<div class="page" id="page-rekap">
+
+  <div class="sec">Total Hari Ini</div>
+  <div class="metric-row">
+    <div class="metric">
+      <div class="metric-val" id="r-karung">0</div>
+      <div class="metric-lbl">Karung Digunakan</div>
+      <div class="metric-sub">karung</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val" id="r-basah">0</div>
+      <div class="metric-lbl">Bahan Basah</div>
+      <div class="metric-sub">kg masuk penjemuran</div>
+    </div>
+  </div>
+  <div class="metric-row">
+    <div class="metric">
+      <div class="metric-val" id="r-kering">0</div>
+      <div class="metric-lbl">Hasil Kering</div>
+      <div class="metric-sub">kg</div>
+    </div>
+    <div class="metric highlight">
+      <div class="metric-val" id="r-block">0</div>
+      <div class="metric-lbl">Block Diproduksi</div>
+      <div class="metric-sub">pcs / target 420</div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font-size:12px;color:var(--text3)">Pencapaian vs Target (420 pcs)</span>
+      <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green)" id="r-pct">0%</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="r-bar" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+      <span style="font-size:11px;color:var(--text3)">Susut penjemuran: <span id="r-susut" style="color:var(--amber);font-family:var(--mono)">—</span></span>
+    </div>
+  </div>
+
+  <div class="sec">Log per Shift</div>
+  <div class="log-list" id="rekap-log">
+    <div class="empty"><span class="empty-icon">📋</span>Belum ada data hari ini.<br>Input dari tab <strong>Input Shift</strong>.</div>
+  </div>
+
+  <button class="btn-export" onclick="exportToday()">Salin Laporan Harian (WhatsApp)</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: HISTORY
+══════════════════════════════════════ -->
+<div class="page" id="page-history">
+  <div class="sec">Riwayat 30 Hari Terakhir</div>
+  <div style="overflow-x:auto;">
+    <table class="hist-table">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Shift</th>
+          <th>Karung</th>
+          <th>Basah (kg)</th>
+          <th>Kering (kg)</th>
+          <th>Block</th>
+          <th>Susut</th>
+        </tr>
+      </thead>
+      <tbody id="hist-body">
+        <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">Belum ada riwayat.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: DEPLOY GUIDE
+══════════════════════════════════════ -->
+<div class="page" id="page-deploy">
+  <div class="sec">Deploy ke Cloudflare Pages</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7;">
+    Web app ini terdiri dari 3 file saja. Deploy gratis ke Cloudflare Pages dalam ~10 menit.
+    Setelah deploy, kamu dapat link seperti <code>vsk-produksi.pages.dev</code> yang bisa dibuka dari HP manapun.
+  </p>
+
+  <div class="guide-step">
+    <div class="guide-step-head" onclick="toggleStep(this)">
+      <div class="step-num">1</div>
+      <div class="step-title">Download file web app ini</div>
+    </div>
+    <div class="step-body">
+      <p>Web app ini terdiri dari 3 file yang sudah terpadu:</p>
+      <p>• <code>index.html</code> — halaman utama<br>• <code>manifest.json</code> — agar bisa di-install di HP<br>• <code>sw.js</code> — agar bisa dipakai offline</p>
+      <p>Kamu bisa download semua file ini dari link yang diberikan Claude, atau buat folder baru dan copy-paste isinya.</p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="guide-step-head" onclick="toggleStep(this)">
+      <div class="step-num">2</div>
+      <div class="step-title">Buat akun GitHub (gratis)</div>
+    </div>
+    <div class="step-body">
+      <p>1. Buka <code>github.com</code> → klik <strong>Sign Up</strong></p>
+      <p>2. Daftar dengan email → verifikasi email</p>
+      <p>3. Buat repository baru: klik <strong>"+"</strong> → <strong>New repository</strong></p>
+      <p>4. Nama repo: <code>vsk-produksi</code> → pilih <strong>Public</strong> → klik <strong>Create</strong></p>
+      <p>5. Upload 3 file (index.html, manifest.json, sw.js) via tombol <strong>Upload files</strong></p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="guide-step-head" onclick="toggleStep(this)">
+      <div class="step-num">3</div>
+      <div class="step-title">Hubungkan ke Cloudflare Pages</div>
+    </div>
+    <div class="step-body">
+      <p>1. Buka <code>pages.cloudflare.com</code> → daftar gratis</p>
+      <p>2. Klik <strong>Create a project</strong> → pilih <strong>Connect to Git</strong></p>
+      <p>3. Pilih repository <code>vsk-produksi</code> dari GitHub</p>
+      <p>4. Di bagian Build settings: <strong>biarkan semua kosong</strong> (tidak perlu build command)</p>
+      <p>5. Klik <strong>Save and Deploy</strong> → tunggu ~1 menit</p>
+      <p>6. Kamu dapat link seperti: <code>vsk-produksi.pages.dev</code> ✅</p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="guide-step-head" onclick="toggleStep(this)">
+      <div class="step-num">4</div>
+      <div class="step-title">Install di HP operator (opsional tapi recommended)</div>
+    </div>
+    <div class="step-body">
+      <p><strong>Android (Chrome):</strong></p>
+      <p>1. Buka link web app di Chrome<br>2. Tap menu <strong>⋮</strong> → <strong>"Add to Home screen"</strong><br>3. Web app muncul seperti aplikasi biasa di home screen</p>
+      <p><strong>iPhone (Safari):</strong></p>
+      <p>1. Buka link di Safari<br>2. Tap ikon <strong>Share (□↑)</strong> → <strong>"Add to Home Screen"</strong><br>3. Tap <strong>Add</strong></p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="guide-step-head" onclick="toggleStep(this)">
+      <div class="step-num">5</div>
+      <div class="step-title">Update jika ada perubahan</div>
+    </div>
+    <div class="step-body">
+      <p>Jika ada perubahan di web app (misalnya tambah field atau ubah target):</p>
+      <p>1. Upload file baru ke GitHub (replace file lama)<br>2. Cloudflare Pages otomatis update dalam ~1 menit<br>3. Refresh di HP — selesai</p>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:20px">Tentang Penyimpanan Data</div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:12px;color:var(--text2);line-height:1.8;">
+    <p style="margin-bottom:6px;">📱 <strong style="color:var(--text)">Versi ini (offline-first):</strong> Data tersimpan di HP/browser masing-masing operator. Data <em>tidak</em> otomatis terpusat.</p>
+    <p>☁️ <strong style="color:var(--text)">Upgrade berikutnya (terpusat):</strong> Sambungkan ke Google Sheets via Apps Script agar semua operator input ke satu tempat dan kamu bisa lihat real-time dari HP sendiri. Claude bisa bantu buatkan kode-nya.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────
+const TARGET = 420;
+let activeShift = 'pagi';
+const KEY = 'vsk_entries';
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }
+}
+function save(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function todayEntries() {
+  return load().filter(e => e.date === todayStr());
+}
+
+// ── TOP DATE ───────────────────────────
+function updateDate() {
+  const d = new Date();
+  const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  document.getElementById('top-date').innerHTML =
+    days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + '<br>' + d.getFullYear();
+}
+updateDate();
+
+// ── NAVIGATION ─────────────────────────
+function goto(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const idx = ['input','rekap','history','deploy'].indexOf(page);
+  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if (page === 'rekap') renderRekap();
+  if (page === 'history') renderHistory();
+}
+
+// ── SHIFT ──────────────────────────────
+function setShift(s) {
+  activeShift = s;
+  ['pagi','sore'].forEach(x => {
+    document.getElementById('sc-' + x).classList.toggle('active', x === s);
+  });
+}
+
+// ── SUSUT PREVIEW ──────────────────────
+function calcSusut() {
+  const basah = parseFloat(document.getElementById('inp-basah').value) || 0;
+  const kering = parseFloat(document.getElementById('inp-kering').value) || 0;
+  const el = document.getElementById('susut-preview');
+  if (basah > 0 && kering > 0 && kering <= basah) {
+    el.textContent = ((basah - kering) / basah * 100).toFixed(1) + '%';
+  } else {
+    el.textContent = '—';
+  }
+}
+
+// ── SUBMIT ─────────────────────────────
+function submitShift() {
+  const operator = document.getElementById('inp-operator').value.trim();
+  const karung = parseFloat(document.getElementById('inp-karung').value) || 0;
+  const basah  = parseFloat(document.getElementById('inp-basah').value)  || 0;
+  const kering = parseFloat(document.getElementById('inp-kering').value) || 0;
+  const block  = parseFloat(document.getElementById('inp-block').value)  || 0;
+  const notes  = document.getElementById('inp-notes').value.trim();
+
+  if (!operator) { showToast('Isi nama operator dulu', true); return; }
+  if (!karung && !basah && !block) { showToast('Isi minimal satu data produksi', true); return; }
+
+  const all = load();
+  const dupIdx = all.findIndex(e => e.date === todayStr() && e.shift === activeShift);
+  if (dupIdx >= 0) {
+    if (!confirm('Data shift ' + activeShift + ' hari ini sudah ada.\nTimpa dengan data baru?')) return;
+    all.splice(dupIdx, 1);
+  }
+
+  const entry = {
+    id: Date.now(),
+    date: todayStr(),
+    shift: activeShift,
+    operator,
+    karung, basah, kering, block, notes,
+    time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+  };
+  all.push(entry);
+  save(all);
+
+  // reset form
+  ['inp-operator','inp-karung','inp-basah','inp-kering','inp-block','inp-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('susut-preview').textContent = '—';
+
+  showToast('Data shift ' + activeShift + ' tersimpan ✓');
+  goto('rekap');
+}
+
+// ── REKAP ──────────────────────────────
+function renderRekap() {
+  const entries = todayEntries();
+  const tot = k => entries.reduce((s, e) => s + (e[k] || 0), 0);
+  const totalKarung = tot('karung');
+  const totalBasah  = tot('basah');
+  const totalKering = tot('kering');
+  const totalBlock  = tot('block');
+  const susut = totalBasah > 0 ? ((totalBasah - totalKering) / totalBasah * 100).toFixed(1) + '%' : '—';
+  const pct = Math.min(Math.round(totalBlock / TARGET * 100), 999);
+
+  document.getElementById('r-karung').textContent = totalKarung;
+  document.getElementById('r-basah').textContent  = totalBasah.toFixed(1);
+  document.getElementById('r-kering').textContent = totalKering.toFixed(1);
+  document.getElementById('r-block').textContent  = totalBlock;
+  document.getElementById('r-pct').textContent    = pct + '%';
+  document.getElementById('r-susut').textContent  = susut;
+
+  const bar = document.getElementById('r-bar');
+  bar.style.width = Math.min(pct, 100) + '%';
+  bar.className = 'progress-bar' + (pct >= 100 ? ' over' : pct >= 70 ? '' : ' warn');
+
+  const logEl = document.getElementById('rekap-log');
+  if (!entries.length) {
+    logEl.innerHTML = '<div class="empty"><span class="empty-icon">📋</span>Belum ada data hari ini.<br>Input dari tab <strong>Input Shift</strong>.</div>';
+    return;
+  }
+
+  logEl.innerHTML = entries
+    .sort((a,b) => a.shift === 'pagi' ? -1 : 1)
+    .map(e => {
+      const s = e.basah > 0 ? ((e.basah - e.kering) / e.basah * 100).toFixed(1) + '%' : '—';
+      return `
+      <div class="log-item">
+        <div class="log-head">
+          <span class="log-shift ${e.shift}">SHIFT ${e.shift.toUpperCase()} — ${e.operator}</span>
+          <span class="log-time">Input ${e.time}</span>
+        </div>
+        <div class="log-body">
+          <div class="log-stat"><span class="log-stat-val">${e.karung}</span><span class="log-stat-lbl">Karung</span></div>
+          <div class="log-stat"><span class="log-stat-val">${e.basah} kg</span><span class="log-stat-lbl">Basah</span></div>
+          <div class="log-stat"><span class="log-stat-val">${e.kering} kg</span><span class="log-stat-lbl">Kering</span></div>
+          <div class="log-stat"><span class="log-stat-val">${e.block} pcs</span><span class="log-stat-lbl">Block</span></div>
+        </div>
+        ${e.notes ? `<div class="log-note">📌 ${e.notes}</div>` : ''}
+        <button class="log-del" onclick="deleteEntry(${e.id})">Hapus entri ini</button>
+      </div>`;
+    }).join('');
+}
+
+function deleteEntry(id) {
+  if (!confirm('Hapus entri ini?')) return;
+  save(load().filter(e => e.id !== id));
+  renderRekap();
+  showToast('Entri dihapus');
+}
+
+// ── EXPORT WHATSAPP ────────────────────
+function exportToday() {
+  const entries = todayEntries();
+  if (!entries.length) { showToast('Tidak ada data hari ini', true); return; }
+
+  const d = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const tot = k => entries.reduce((s,e) => s + (e[k]||0), 0);
+  const tB = tot('basah'), tK = tot('kering'), tBlock = tot('block');
+  const susut = tB > 0 ? ((tB-tK)/tB*100).toFixed(1)+'%' : '—';
+  const pct = Math.round(tBlock/TARGET*100);
+
+  const shifts = entries.sort((a,b)=>a.shift==='pagi'?-1:1).map(e=>
+    `  [${e.shift.toUpperCase()}] ${e.operator}\n  ${e.karung} krg | ${e.basah} kg basah | ${e.kering} kg kering | ${e.block} pcs`
+    + (e.notes ? `\n  📌 ${e.notes}` : '')
+  ).join('\n\n');
+
+  const msg = `📊 *LAPORAN PRODUKSI HARIAN — VSK*\n━━━━━━━━━━━━━━━━━━━━━\n📅 ${d}\n\n📦 Karung    : ${tot('karung')} krg\n💧 Basah     : ${tB} kg\n☀️ Kering    : ${tK} kg\n🧱 Block     : *${tBlock} pcs* (${pct}% dari target)\n📉 Susut     : ${susut}\n\n━━━ DETAIL SHIFT ━━━\n${shifts}\n━━━━━━━━━━━━━━━━━━━━━\n_VSK Produksi System_`;
+
+  navigator.clipboard.writeText(msg).then(() => showToast('Laporan disalin! Paste ke WA ✓'))
+    .catch(() => { alert(msg); });
+}
+
+// ── HISTORY ────────────────────────────
+function renderHistory() {
+  const all = load().slice().reverse();
+  const tbody = document.getElementById('hist-body');
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">Belum ada riwayat.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = all.map(e => {
+    const susut = e.basah > 0 ? ((e.basah-e.kering)/e.basah*100).toFixed(1)+'%' : '—';
+    return `<tr>
+      <td>${e.date}</td>
+      <td>${e.shift}</td>
+      <td>${e.karung}</td>
+      <td>${e.basah}</td>
+      <td>${e.kering}</td>
+      <td style="color:var(--green);font-weight:700">${e.block}</td>
+      <td class="badge-susut">${susut}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCSV() {
+  const all = load();
+  if (!all.length) { showToast('Tidak ada data', true); return; }
+  const header = 'Tanggal,Shift,Operator,Karung,Basah(kg),Kering(kg),Block(pcs),Susut(%),Catatan';
+  const rows = all.map(e => {
+    const s = e.basah > 0 ? ((e.basah-e.kering)/e.basah*100).toFixed(1) : '';
+    return [e.date, e.shift, e.operator, e.karung, e.basah, e.kering, e.block, s, '"'+(e.notes||'')+'"'].join(',');
+  });
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'VSK_Produksi_' + todayStr() + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV diunduh ✓');
+}
+
+// ── DEPLOY GUIDE ACCORDION ─────────────
+function toggleStep(head) {
+  const body = head.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ── TOAST ──────────────────────────────
+function showToast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── SERVICE WORKER ─────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
