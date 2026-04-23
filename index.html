@@ -365,30 +365,17 @@ code{font-family:var(--mono);font-size:11px;color:var(--leaf);background:var(--l
   </div>
 
   <div class="info-box">
-    <p>📱 <strong>Versi ini:</strong> Data tersimpan di HP masing-masing. Cocok untuk 1 operator / 1 perangkat.</p>
-    <p>☁️ <strong>Upgrade berikutnya:</strong> Hubungkan ke Google Sheets agar semua input terpusat dan bisa kamu pantau real-time dari HP kamu sendiri.</p>
+    <p>📱 <strong>Data tersimpan:</strong> Setiap input dari HP manapun langsung sync ke Google Sheets secara otomatis.</p>
+    <p>☁️ <strong>Upgrade berikutnya:</strong> Tambah dashboard Looker Studio untuk pantau produksi real-time dari HP-mu.</p>
   </div>
-
-  <div class="sec" style="margin-top:28px"><span class="sec-title">Sambungkan ke Google Sheets</span><span class="sec-line"></span></div>
-  <p style="font-size:13px;color:var(--brown);line-height:1.75;margin-bottom:14px;">Paste URL Apps Script di sini. Setelah tersambung, semua data input akan otomatis sync ke Google Sheets.</p>
-
-  <div class="field">
-    <label class="f-label">URL Apps Script Web App</label>
-    <div class="f-wrap">
-      <input type="url" id="sheets-url" class="no-unit" placeholder="https://script.google.com/macros/s/..." value="">
-    </div>
-  </div>
-  <button class="btn-ghost" onclick="saveSheetsUrl()" id="btn-save-url">Simpan & Aktifkan Sync</button>
-  <div id="sync-status" style="margin-top:10px;font-size:12px;color:var(--sand);text-align:center;"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const TARGET=420, STORE='vsk_v2';
-
-const SHEETS_URL = localStorage.getItem('vsk_sheets_url') || '';
-let SYNC_ON = !!SHEETS_URL;
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbw3pWXUCvStevJLIA2x1r7n39Hb2UrCNYuGzwUbzLVpMtyd_ICBMS8RLR3ZqLo9_PqRaw/exec';
+const SYNC_ON=true;
 
 function load(){try{return JSON.parse(localStorage.getItem(STORE)||'[]');}catch{return[];}}
 function save(d){localStorage.setItem(STORE,JSON.stringify(d));}
@@ -396,7 +383,6 @@ function todayStr(){return new Date().toISOString().split('T')[0];}
 function todayData(){return load().filter(e=>e.date===todayStr());}
 
 async function sendToSheets(entry){
-  if(!SYNC_ON) return false;
   try{
     await fetch(SHEETS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(entry)});
     return true;
@@ -557,28 +543,6 @@ function toggleStep(head){
   document.querySelectorAll('.step-head').forEach(h=>h.classList.remove('open'));
   if(!isOpen){body.classList.add('open');head.classList.add('open');}
 }
-
-function saveSheetsUrl(){
-  const url=document.getElementById('sheets-url').value.trim();
-  if(!url){toast('Masukkan URL dulu',true);return;}
-  if(!url.startsWith('https://script.google.com/')){toast('URL harus dari script.google.com',true);return;}
-  localStorage.setItem('vsk_sheets_url',url);
-  document.getElementById('sync-status').innerHTML='✓ Sync aktif. Data berikutnya akan tersimpan ke Sheets.';
-  document.getElementById('sync-status').style.color='var(--leaf)';
-  toast('Sheets sync diaktifkan ✓');
-  setTimeout(()=>location.reload(),1500);
-}
-
-(function initSyncUI(){
-  const url=localStorage.getItem('vsk_sheets_url');
-  const input=document.getElementById('sheets-url');
-  const status=document.getElementById('sync-status');
-  if(url&&input){
-    input.value=url;
-    status.innerHTML='✓ Sync aktif ke Google Sheets';
-    status.style.color='var(--leaf)';
-  }
-})();
 
 function toast(msg,isErr=false){
   const el=document.getElementById('toast');
