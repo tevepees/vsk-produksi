@@ -203,7 +203,6 @@ code{font-family:var(--mono);font-size:11px;color:var(--leaf);background:var(--l
   <button class="nav-btn active" onclick="goto('input')">Input Shift</button>
   <button class="nav-btn" onclick="goto('rekap')">Rekap Hari Ini</button>
   <button class="nav-btn" onclick="goto('history')">Riwayat</button>
-  <button class="nav-btn" onclick="goto('deploy')">Panduan Deploy</button>
 </nav>
 
 <!-- INPUT -->
@@ -280,100 +279,72 @@ code{font-family:var(--mono);font-size:11px;color:var(--leaf);background:var(--l
 <div class="page" id="page-rekap">
   <div class="hero">
     <div class="hero-label">Block diproduksi hari ini</div>
-    <div class="hero-val" id="r-block">0<sup>pcs</sup></div>
-    <div class="hero-sub" id="r-sub">Belum ada data masuk</div>
+    <div class="hero-val" id="r-block">—<sup>pcs</sup></div>
+    <div class="hero-sub" id="r-sub">Memuat data...</div>
   </div>
 
   <div class="stat-row">
-    <div class="stat"><div class="stat-val" id="r-karung">0</div><div class="stat-lbl">Karung</div><div class="stat-unit">digunakan</div></div>
-    <div class="stat"><div class="stat-val" id="r-basah">0</div><div class="stat-lbl">Basah</div><div class="stat-unit">kg</div></div>
-    <div class="stat"><div class="stat-val" id="r-kering">0</div><div class="stat-lbl">Kering</div><div class="stat-unit">kg</div></div>
+    <div class="stat"><div class="stat-val" id="r-karung">—</div><div class="stat-lbl">Karung</div><div class="stat-unit">digunakan</div></div>
+    <div class="stat"><div class="stat-val" id="r-basah">—</div><div class="stat-lbl">Basah</div><div class="stat-unit">kg</div></div>
+    <div class="stat"><div class="stat-val" id="r-kering">—</div><div class="stat-lbl">Kering</div><div class="stat-unit">kg</div></div>
   </div>
 
   <div class="prog-card">
     <div class="prog-head">
-      <span class="prog-lbl">Pencapaian vs Target</span>
-      <span class="prog-pct" id="r-pct">0%</span>
+      <span class="prog-lbl">Block vs Target</span>
+      <span class="prog-pct" id="r-pct">—</span>
     </div>
     <div class="prog-track"><div class="prog-fill" id="r-bar" style="width:0%"></div></div>
     <div class="prog-foot">
-      <span>Target: <strong>420 pcs</strong></span>
+      <span>Target: <strong>60 pcs</strong></span>
       <span>Susut: <strong id="r-susut">—</strong></span>
     </div>
   </div>
 
-  <div class="sec"><span class="sec-title">Log per shift</span><span class="sec-line"></span></div>
+  <div class="prog-card">
+    <div class="prog-head">
+      <span class="prog-lbl">Kering vs Target</span>
+      <span class="prog-pct" id="r-kering-pct">—</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="r-kering-bar" style="width:0%"></div></div>
+    <div class="prog-foot">
+      <span>Target: <strong>300 kg</strong></span>
+      <span id="r-kering-sisa" style="color:var(--sand);font-size:11px;"></span>
+    </div>
+  </div>
+
+  <div class="sec">
+    <span class="sec-title">Log per shift</span>
+    <span class="sec-line"></span>
+    <span class="sec-tag" style="cursor:pointer;color:var(--leaf)" onclick="renderRekap()">↻ refresh</span>
+  </div>
   <div class="log-stack" id="log-wrap">
-    <div class="empty"><div class="empty-icon">📋</div><div class="empty-h">Belum ada data hari ini</div><div class="empty-p">Masukkan dari tab Input Shift</div></div>
+    <div class="empty"><div class="empty-icon">⏳</div><div class="empty-h">Memuat data...</div></div>
   </div>
   <button class="btn-ghost" onclick="exportWA()">Salin laporan untuk WhatsApp</button>
 </div>
 
 <!-- HISTORY -->
 <div class="page" id="page-history">
-  <div class="sec"><span class="sec-title">Riwayat produksi</span><span class="sec-line"></span><span class="sec-tag" id="hist-ct">0 entri</span></div>
+  <div class="sec">
+    <span class="sec-title">Riwayat harian</span>
+    <span class="sec-line"></span>
+    <span class="sec-tag" style="cursor:pointer;color:var(--leaf)" onclick="renderHistory()">↻ refresh</span>
+  </div>
   <div class="tbl-wrap">
     <table>
-      <thead><tr><th>Tanggal</th><th>Shift</th><th>Operator</th><th>Krg</th><th>Basah</th><th>Kering</th><th>Block</th><th>Susut</th></tr></thead>
+      <thead><tr><th>Tanggal</th><th>Shift</th><th>Karung</th><th>Kering (kg)</th><th>Block</th><th>Susut</th></tr></thead>
       <tbody id="hist-body"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--stone)">Belum ada riwayat.</td></tr></tbody>
     </table>
   </div>
-  <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
 </div>
 
-<!-- DEPLOY -->
-<div class="page" id="page-deploy">
-  <div class="sec" style="margin-top:0"><span class="sec-title">Deploy ke Cloudflare Pages</span><span class="sec-line"></span></div>
-  <p style="font-size:13px;color:var(--brown);line-height:1.75;margin-bottom:16px;">3 file · 10KB · gratis selamanya. Operator cukup buka link dari HP, tidak perlu install apapun.</p>
-
-  <div class="step">
-    <div class="step-head" onclick="toggleStep(this)">
-      <div class="step-num">1</div><div class="step-text">Download & siapkan file</div><span class="step-chev">▾</span>
-    </div>
-    <div class="step-body">
-      <p>Download file ZIP dari Claude dan extract. Isinya 3 file:<br>• <code>index.html</code> — aplikasi utama<br>• <code>manifest.json</code> — agar bisa diinstall di HP<br>• <code>sw.js</code> — agar bisa dipakai offline</p>
-    </div>
-  </div>
-
-  <div class="step">
-    <div class="step-head" onclick="toggleStep(this)">
-      <div class="step-num">2</div><div class="step-text">Buat akun & repo di GitHub</div><span class="step-chev">▾</span>
-    </div>
-    <div class="step-body">
-      <p>1. Buka <code>github.com</code> → Sign Up (gratis)<br>2. Klik <strong>"+"</strong> → <strong>New repository</strong><br>3. Nama: <code>vsk-produksi</code> → pilih Public → Create<br>4. Klik <strong>Upload files</strong> → drag ketiga file → Commit</p>
-    </div>
-  </div>
-
-  <div class="step">
-    <div class="step-head" onclick="toggleStep(this)">
-      <div class="step-num">3</div><div class="step-text">Deploy di Cloudflare Pages</div><span class="step-chev">▾</span>
-    </div>
-    <div class="step-body">
-      <p>1. Buka <code>pages.cloudflare.com</code> → daftar gratis<br>2. Klik <strong>Create a project</strong> → <strong>Connect to Git</strong><br>3. Pilih repo <code>vsk-produksi</code><br>4. Build settings: <strong>biarkan semua kosong</strong><br>5. Klik <strong>Save and Deploy</strong> → tunggu ~60 detik<br>6. Dapat link: <code>vsk-produksi.pages.dev</code> ✓</p>
-    </div>
-  </div>
-
-  <div class="step">
-    <div class="step-head" onclick="toggleStep(this)">
-      <div class="step-num">4</div><div class="step-text">Install di HP operator</div><span class="step-chev">▾</span>
-    </div>
-    <div class="step-body">
-      <p><strong>Android (Chrome):</strong> buka link → tap menu ⋮ → "Add to Home screen"</p>
-      <p><strong>iPhone (Safari):</strong> buka link → tap Share □↑ → "Add to Home Screen" → Add</p>
-      <p>Muncul di home screen seperti app biasa. Bisa dipakai offline.</p>
-    </div>
-  </div>
-
-  <div class="info-box">
-    <p>📱 <strong>Data tersimpan:</strong> Setiap input dari HP manapun langsung sync ke Google Sheets secara otomatis.</p>
-    <p>☁️ <strong>Upgrade berikutnya:</strong> Tambah dashboard Looker Studio untuk pantau produksi real-time dari HP-mu.</p>
-  </div>
-</div>
+<!-- DEPLOY PAGE REMOVED - system is fully configured -->
 
 <div class="toast" id="toast"></div>
 
 <script>
-const TARGET=420, STORE='vsk_v2';
+const TARGET=60, TARGET_KERING=300, STORE='vsk_v2';
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbw3pWXUCvStevJLIA2x1r7n39Hb2UrCNYuGzwUbzLVpMtyd_ICBMS8RLR3ZqLo9_PqRaw/exec';
 const SYNC_ON=true;
 
@@ -407,7 +378,7 @@ function goto(p){
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  document.querySelectorAll('.nav-btn')[['input','rekap','history','deploy'].indexOf(p)].classList.add('active');
+  document.querySelectorAll('.nav-btn')[['input','rekap','history'].indexOf(p)].classList.add('active');
   if(p==='rekap')renderRekap();
   if(p==='history')renderHistory();
 }
@@ -456,92 +427,122 @@ function submitShift(){
   goto('rekap');
 }
 
-function renderRekap(){
-  const entries=todayData();
-  const tot=k=>entries.reduce((s,e)=>s+(e[k]||0),0);
+async function renderRekap(){
+  const wrap=document.getElementById('log-wrap');
+  wrap.innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-h">Memuat dari server...</div></div>';
+  document.getElementById('r-block').innerHTML='—<sup>pcs</sup>';
+  document.getElementById('r-sub').textContent='Memuat data...';
+
+  let entries=[];
+  try{
+    const res=await fetch(SHEETS_URL+'?action=rekap&date='+todayStr());
+    const json=await res.json();
+    if(json.ok) entries=json.entries||[];
+  }catch(err){
+    wrap.innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-h">Gagal memuat data</div><div class="empty-p">Periksa koneksi internet lalu tap ↻ refresh</div></div>';
+    return;
+  }
+
+  const tot=k=>entries.reduce((s,e)=>s+(parseFloat(e[k])||0),0);
   const tK=tot('karung'),tB=tot('basah'),tKg=tot('kering'),tBl=tot('block');
   const susut=tB>0?((tB-tKg)/tB*100).toFixed(1)+'%':'—';
-  const pct=tBl>0?Math.min(Math.round(tBl/TARGET*100),999):0;
+  const pctBlock=tBl>0?Math.min(Math.round(tBl/TARGET*100),999):0;
+  const pctKering=tKg>0?Math.min(Math.round(tKg/TARGET_KERING*100),999):0;
+  const sisaKering=Math.max(TARGET_KERING-tKg,0).toFixed(1);
+
   document.getElementById('r-block').innerHTML=tBl+'<sup>pcs</sup>';
-  document.getElementById('r-sub').textContent=entries.length?pct+'% dari target '+TARGET+' pcs · '+entries.length+' shift masuk':'Belum ada data masuk';
+  document.getElementById('r-sub').textContent=entries.length
+    ?pctBlock+'% dari target 60 pcs · '+entries.length+' shift masuk'
+    :'Belum ada data hari ini';
   document.getElementById('r-karung').textContent=tK;
   document.getElementById('r-basah').textContent=tB.toFixed(1);
   document.getElementById('r-kering').textContent=tKg.toFixed(1);
-  document.getElementById('r-pct').textContent=pct+'%';
+  document.getElementById('r-pct').textContent=pctBlock+'%';
   document.getElementById('r-susut').textContent=susut;
-  const bar=document.getElementById('r-bar');
-  bar.style.width=Math.min(pct,100)+'%';
-  bar.className='prog-fill'+(pct<70?' warn':'');
-  const wrap=document.getElementById('log-wrap');
+  document.getElementById('r-kering-pct').textContent=pctKering+'%';
+  document.getElementById('r-kering-sisa').textContent=tKg<TARGET_KERING?'Sisa: '+sisaKering+' kg':'Target tercapai ✓';
+
+  const barBlock=document.getElementById('r-bar');
+  barBlock.style.width=Math.min(pctBlock,100)+'%';
+  barBlock.className='prog-fill'+(pctBlock<70?' warn':'');
+
+  const barKering=document.getElementById('r-kering-bar');
+  barKering.style.width=Math.min(pctKering,100)+'%';
+  barKering.className='prog-fill'+(pctKering<70?' warn':'');
+
   if(!entries.length){
     wrap.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-h">Belum ada data hari ini</div><div class="empty-p">Masukkan dari tab Input Shift</div></div>';
     return;
   }
-  wrap.innerHTML=entries.sort((a,b)=>a.shift==='pagi'?-1:1).map(e=>{
-    const s=e.basah>0?((e.basah-e.kering)/e.basah*100).toFixed(1)+'%':'—';
-    return`<div class="log-card">
-      <div class="log-head">
-        <div class="log-badge"><span class="log-dot ${e.shift}"></span><div><div class="log-shift-name">Shift ${e.shift.charAt(0).toUpperCase()+e.shift.slice(1)}</div><div class="log-op">${e.operator}</div></div></div>
-        <span class="log-time">Input ${e.time}</span>
-      </div>
-      <div class="log-stats">
-        <div class="ls"><div class="ls-val">${e.karung}</div><div class="ls-lbl">Karung</div></div>
-        <div class="ls"><div class="ls-val">${e.basah}</div><div class="ls-lbl">Basah (kg)</div></div>
-        <div class="ls"><div class="ls-val">${e.kering}</div><div class="ls-lbl">Kering (kg)</div></div>
-        <div class="ls"><div class="ls-val green">${e.block}</div><div class="ls-lbl">Block (pcs)</div></div>
-      </div>
-      ${e.notes?`<div class="log-note">${e.notes}</div>`:''}
-      <div class="log-foot"><button class="log-del" onclick="delEntry(${e.id})">Hapus entri ini</button></div>
-    </div>`;
-  }).join('');
+
+  wrap.innerHTML=entries
+    .sort((a,b)=>a.shift==='Pagi'?-1:1)
+    .map(e=>{
+      const s=parseFloat(e.basah)>0?((parseFloat(e.basah)-parseFloat(e.kering))/parseFloat(e.basah)*100).toFixed(1)+'%':'—';
+      return`<div class="log-card">
+        <div class="log-head">
+          <div class="log-badge"><span class="log-dot ${e.shift.toLowerCase()}"></span>
+            <div><div class="log-shift-name">Shift ${e.shift}</div><div class="log-op">${e.operator}</div></div>
+          </div>
+          <span class="log-time">Input ${e.time}</span>
+        </div>
+        <div class="log-stats">
+          <div class="ls"><div class="ls-val">${e.karung}</div><div class="ls-lbl">Karung</div></div>
+          <div class="ls"><div class="ls-val">${e.basah}</div><div class="ls-lbl">Basah (kg)</div></div>
+          <div class="ls"><div class="ls-val">${e.kering}</div><div class="ls-lbl">Kering (kg)</div></div>
+          <div class="ls"><div class="ls-val green">${e.block}</div><div class="ls-lbl">Block (pcs)</div></div>
+        </div>
+        ${e.notes?`<div class="log-note">${e.notes}</div>`:''}
+      </div>`;
+    }).join('');
+
+  // Cache untuk exportWA
+  window._rekapCache={entries,tK,tB,tKg,tBl,susut,pctBlock};
 }
 
-function delEntry(id){
-  if(!confirm('Hapus entri ini?'))return;
-  save(load().filter(e=>e.id!==id));renderRekap();toast('Entri dihapus');
-}
-
+function toast(msg,isErr=false){
 function exportWA(){
-  const entries=todayData();
-  if(!entries.length){toast('Belum ada data hari ini',true);return;}
+  const c=window._rekapCache;
+  if(!c||!c.entries||!c.entries.length){toast('Buka Rekap Hari Ini dulu',true);return;}
   const d=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const tot=k=>entries.reduce((s,e)=>s+(e[k]||0),0);
-  const tB=tot('basah'),tKg=tot('kering'),tBl=tot('block');
-  const susut=tB>0?((tB-tKg)/tB*100).toFixed(1)+'%':'—';
-  const lines=entries.sort((a,b)=>a.shift==='pagi'?-1:1).map(e=>
+  const lines=c.entries.sort((a,b)=>a.shift==='Pagi'?-1:1).map(e=>
     `  [${e.shift.toUpperCase()}] ${e.operator}: ${e.karung} krg | ${e.basah} kg basah | ${e.kering} kg kering | ${e.block} pcs`+(e.notes?`\n  📌 ${e.notes}`:'')
   ).join('\n\n');
-  const msg=`📊 *LAPORAN PRODUKSI — VSK*\n━━━━━━━━━━━━━━━━━\n📅 ${d}\n\n🧱 Block   : *${tBl} pcs* (${Math.round(tBl/TARGET*100)}%)\n📦 Karung  : ${tot('karung')} krg\n💧 Basah   : ${tB} kg\n☀️ Kering  : ${tKg} kg\n📉 Susut   : ${susut}\n\n━━━ SHIFT ━━━\n${lines}\n━━━━━━━━━━━━━━━━━\n_VSK Produksi System_`;
+  const msg=`📊 *LAPORAN PRODUKSI — VSK*\n━━━━━━━━━━━━━━━━━\n📅 ${d}\n\n🧱 Block   : *${c.tBl} pcs* (${c.pctBlock}%)\n📦 Karung  : ${c.tK} krg\n💧 Basah   : ${c.tB} kg\n☀️ Kering  : ${c.tKg} kg\n📉 Susut   : ${c.susut}\n\n━━━ SHIFT ━━━\n${lines}\n━━━━━━━━━━━━━━━━━\n_VSK Produksi System_`;
   navigator.clipboard.writeText(msg).then(()=>toast('Laporan disalin ✓')).catch(()=>alert(msg));
 }
 
-function renderHistory(){
-  const all=load().slice().reverse();
-  document.getElementById('hist-ct').textContent=all.length+' entri';
+async function renderHistory(){
   const tb=document.getElementById('hist-body');
-  if(!all.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--stone)">Belum ada riwayat.</td></tr>';return;}
-  tb.innerHTML=all.map(e=>{
-    const s=e.basah>0?((e.basah-e.kering)/e.basah*100).toFixed(1)+'%':'—';
-    return`<tr><td>${e.date}</td><td>${e.shift}</td><td>${e.operator||'—'}</td><td>${e.karung}</td><td>${e.basah}</td><td>${e.kering}</td><td class="c-leaf">${e.block}</td><td class="c-amber">${s}</td></tr>`;
+  tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--stone)">Memuat riwayat...</td></tr>';
+
+  let rows=[];
+  try{
+    const res=await fetch(SHEETS_URL+'?action=riwayat');
+    const json=await res.json();
+    if(json.ok) rows=json.rows||[];
+  }catch(err){
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--rose)">Gagal memuat. Periksa koneksi.</td></tr>';
+    return;
+  }
+
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--stone)">Belum ada riwayat.</td></tr>';
+    return;
+  }
+
+  tb.innerHTML=rows.map(r=>{
+    const susut=r.basah>0?((r.basah-r.kering)/r.basah*100).toFixed(1)+'%':'—';
+    const pct=r.block>0?Math.round(r.block/TARGET*100)+'%':'0%';
+    return`<tr>
+      <td>${r.date}</td>
+      <td>${(r.shifts||[]).join(', ')}</td>
+      <td>${r.karung}</td>
+      <td>${r.kering.toFixed(1)}</td>
+      <td class="c-leaf">${r.block}</td>
+      <td class="c-amber">${susut}</td>
+    </tr>`;
   }).join('');
-}
-
-function exportCSV(){
-  const all=load();
-  if(!all.length){toast('Tidak ada data',true);return;}
-  const hdr='Tanggal,Shift,Operator,Karung,Basah_kg,Kering_kg,Block_pcs,Susut_pct,Catatan';
-  const rows=all.map(e=>{const s=e.basah>0?((e.basah-e.kering)/e.basah*100).toFixed(1):'';return[e.date,e.shift,e.operator,e.karung,e.basah,e.kering,e.block,s,'"'+(e.notes||'')+'"'].join(',');});
-  const blob=new Blob([[hdr,...rows].join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='VSK_Produksi_'+todayStr()+'.csv';a.click();
-  toast('CSV diunduh ✓');
-}
-
-function toggleStep(head){
-  const body=head.nextElementSibling;
-  const isOpen=body.classList.contains('open');
-  document.querySelectorAll('.step-body').forEach(b=>b.classList.remove('open'));
-  document.querySelectorAll('.step-head').forEach(h=>h.classList.remove('open'));
-  if(!isOpen){body.classList.add('open');head.classList.add('open');}
 }
 
 function toast(msg,isErr=false){
